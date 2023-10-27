@@ -207,14 +207,39 @@ const ChatUI = () => {
         <div className="chat-messagess" ref={chatContainerRef}>
    
         <div className="api-response">
-            {apiResponse.checklist.map((doc, index) => (
+            {apiResponse.Checklist.map((doc, index) => (
             <div key={index} className="response-item">
 
-            <h3>Document Name</h3>
-            <div>{doc['Document Name']}</div>
+            <h3>Question</h3>
+            <div>{doc['Question']}</div>
 
-            <h3>Summary</h3> 
-            <div>{doc['Summary']}</div>
+            <h3>Answer</h3> 
+            <div>{doc['Answer']}</div>
+
+            {doc['link'] && doc['link'].length > 0 && (
+            <div>
+              <h3>Document Links</h3>
+              {doc['link'].map((link, linkIndex) => (
+                <div key={linkIndex}>
+                  <a
+                    href={`${link}?page=2`}
+                    target="_blank"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const width = 900;
+                      const height = 500;
+                      const left = window.screen.width / 2 - width / 2;
+                      const top = window.screen.height / 2 - height / 2;
+                      window.open(link, '', `width=${width},height=${height},top=${top},left=${left}`);
+                    }}
+                  >
+                    {link.split('/')[link.split('/').length - 1]}
+                  </a>
+                  <br /> 
+                </div>
+              ))}
+            </div>
+          )}
             
             <hr />
             </div>
