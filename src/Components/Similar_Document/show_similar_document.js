@@ -15,7 +15,7 @@ const ChatUI = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading indicator
-  
+  const [folderList, setFolderList] = useState([]);
   const location = useLocation();
   // const { apiResponse } = location.state;
   const queryParams = new URLSearchParams(location.search);
@@ -26,6 +26,7 @@ const ChatUI = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
+  const [searchInput, setSearchInput] = useState('');
   const [selectedOption, setSelectedOption] = useState(getDefaultOption());
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUserProfileDropdownOpen, setIsUserProfileDropdownOpen] = useState(false);
@@ -103,12 +104,67 @@ const ChatUI = () => {
     }
   }
  
+  const handleSearchInput = (e) => {
+    setSearchInput(e.target.value); 
+  };
+  const filteredFolderList = folderList.filter((folder) =>
+      folder.toLowerCase().startsWith(searchInput.toLowerCase())
+    );
+
+    useEffect(() => {
+      
+      const apiUrl = '/doc_analyser/docstack/list';
+      fetch(apiUrl)
+        .then((response) => response.json())
+        .then((data) => {
+          setFolderList(data.docstack_list);
+        })
+        .catch((error) => {
+          console.error('Error fetching folder list:', error);
+        });
+    }, []);
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   };
 
+  const handleFolderClick = async (folderName) => {
+    try {
+      setIsDocumentUploadVisible(false);
+      setIsLoading(true);
+      const response = await fetch('/get_document_name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ folderName }),
+      });
+
+      if (response.ok) {
+        
+        const secondApiResponse = await fetch('/doc_analyser/similar', {
+          method: 'GET',
+        });
+  
+        if (secondApiResponse.ok) {
+          const responseData = await secondApiResponse.json(); 
+          console.log('Response Data in API:', responseData);
+          setResponseData(responseData);
+          // setIsDocumentUploadVisible(false);
+        } else {
+          console.error('Error fetching response from the second API.');
+        }
+      } else {
+        console.error('Error sending folder name to the API.');
+      }
+    } catch (error) {
+      console.error('Error handling folder click:', error);
+    }
+    finally {
+      setIsLoading(false); 
+    }
+  };
   const handleLogout = () => {
     localStorage.removeItem('userToken');
     window.location.href = '/login';
@@ -147,8 +203,27 @@ const ChatUI = () => {
           <div className="divider-container">
             <hr className="divider-below-recent-chat" />
           </div>
+        </div>
+        <div className="search-bar">
+          <input
+          type="text"
+          value={searchInput}
+          onChange={handleSearchInput}
+          placeholder="Search folders"
+          className="search-input"
+        />
           
         </div>
+         
+          {filteredFolderList.map((folder, index) => (
+          <div
+            key={index}
+            className="folder-item"
+            onClick={() => handleFolderClick(folder)} 
+          >
+            {folder}
+          </div>
+        ))}
       </div>
       <div className="bottom-left-section">
   <p className="bottom-left-text">Product From</p>
