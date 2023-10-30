@@ -212,6 +212,7 @@ const ChatUI = () => {
   const handleFolderClick = async (folderName) => {
     try {
       setIsDocumentUploadVisible(false);
+      setIsLoading(true);
       const response = await fetch('/get_document_name', {
         method: 'POST',
         headers: {
@@ -239,6 +240,9 @@ const ChatUI = () => {
       }
     } catch (error) {
       console.error('Error handling folder click:', error);
+    }
+    finally {
+      setIsLoading(false); 
     }
   };
 
@@ -388,6 +392,9 @@ const ChatUI = () => {
           </button>
         </div>
          ) }
+         {isLoading ? (
+          <div className="loading-message">Generating Response...</div>
+        ) : (
             <div className="api-response">
             {responseData && responseData.similar_documents && responseData.similar_documents.length > 0 ? (
           responseData.similar_documents.map((doc, index) => (
@@ -430,6 +437,7 @@ const ChatUI = () => {
           <div className="no-response"></div>
           )}
           </div>
+          )}
         {uploadedDocuments.length > 0 && (
   <div className="uploaded-documents">
     <div className="uploaded-document-title">Uploaded Documents:</div>
