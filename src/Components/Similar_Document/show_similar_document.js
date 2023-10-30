@@ -21,6 +21,7 @@ const ChatUI = () => {
   const queryParams = new URLSearchParams(location.search);
   const apiResponseQueryParam = queryParams.get('apiResponse');
   const apiResponse = JSON.parse(decodeURIComponent(apiResponseQueryParam));
+  const [isDocumentUploadVisible, setIsDocumentUploadVisible] = useState(true);
 
   
   const toggleMobileMenu = () => {
@@ -280,7 +281,9 @@ const ChatUI = () => {
         </div>
         <hr className="divider" />
         <div className="chat-messagess" ref={chatContainerRef}>
-   
+        {isLoading ? (
+          <div className="loading-message">Generating Response...</div>
+        ) : (
         <div className="api-response">
         {apiResponse.similar_documents.map((doc, index) => (
     <div key={index} className="response-item">
@@ -319,6 +322,7 @@ const ChatUI = () => {
             </div>
       ))}
   </div>
+  )}
   
 
           <div ref={scrollToBottom}></div>
