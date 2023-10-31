@@ -281,9 +281,11 @@ const ChatUI = () => {
         </div>
         <hr className="divider" />
         <div className="chat-messagess" ref={chatContainerRef}>
+        
         {isLoading ? (
           <div className="loading-message">Generating Response...</div>
         ) : (
+          
         <div className="api-response">
         {apiResponse.similar_documents.map((doc, index) => (
     <div key={index} className="response-item">

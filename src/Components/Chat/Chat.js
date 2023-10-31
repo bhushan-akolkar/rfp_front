@@ -19,6 +19,8 @@ const ChatUI = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const [headerText, setHeaderText] = useState('Ask a question');
+
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   const [allSuggestions, setAllSuggestions] = useState([
     '/search',
@@ -29,6 +31,8 @@ const ChatUI = () => {
     'what is KYC',
     'what is credit card'
   ]);
+  const [searchInput, setSearchInput] = useState('');
+  const [folderList, setFolderList] = useState([]);
   const location = useLocation();
   const placeholderText = (
     <div>
@@ -157,6 +161,50 @@ const ChatUI = () => {
     setSuggestionsVisible(newText.trim() !== '' && filteredSuggestions.length > 0);
     setChatPlaceholder(newText.trim() === '' ? placeholderText : '');
   };
+  
+  const handleSearchInput = (e) => {
+    setSearchInput(e.target.value); 
+  };
+
+  
+  const filteredFolderList = folderList.filter((folder) =>
+    folder.toLowerCase().startsWith(searchInput.toLowerCase())
+  );
+
+  useEffect(() => {
+    
+    const apiUrl = '/doc_analyser/docstack/list';
+    fetch(apiUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        setFolderList(data.docstack_list);
+      })
+      .catch((error) => {
+        console.error('Error fetching folder list:', error);
+      });
+  }, []);
+
+
+  const handleFolderClick = async (folderName) => {
+    try {
+      
+      setHeaderText(folderName);
+  
+      const response = await fetch('/get_document_name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ folderName }),
+      });
+  
+     
+    } catch (error) {
+      console.error('Error handling folder click:', error);
+    } 
+  };
+  
+
   const handleSendMessage = () => {
     if (inputText.trim() !== '') {
       setIsLoading(true);
@@ -408,27 +456,26 @@ const ChatUI = () => {
             <hr className="divider-below-recent-chat" />
           </div>
           
-          <div className="chat-history">
-            {chatHistory.map((entry, index) => (
-              <button
-                key={index}
-                className={`chat-history-entry ${
-                  index === activeChatIndex ? 'active' : ''
-                }`}
-                onClick={() => handleChatHistoryClick(index)}
-              >
-                {entry.name}
-                {index === activeChatIndex && (
-                  <button
-                    className="delete-button"
-                    onClick={(event) => handleDeleteChat(index, event)}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                )}
-              </button>
-            ))}
+          <div className="search-bar">
+          <input
+          type="text"
+          value={searchInput}
+          onChange={handleSearchInput}
+          placeholder="Search folders"
+          className="search-input"
+        />
+          
+        </div>
+         
+          {filteredFolderList.map((folder, index) => (
+          <div
+            key={index}
+            className="folder-item"
+            onClick={() => handleFolderClick(folder)} 
+          >
+            {folder}
           </div>
+        ))}
         </div>
       </div>
       <div className="bottom-left-section">
@@ -491,7 +538,7 @@ const ChatUI = () => {
           </button>
         </div>
         <div className="header-text">
-          <div className="ask-question-text">Ask a question</div>
+        <div className="ask-question-text">{headerText}</div>
         </div>
         <hr className="divider" />
         <div className="chat-messages" ref={chatContainerRef}>
